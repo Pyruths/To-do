@@ -1,8 +1,12 @@
 package com.example.qwerty.todo.DataBase;
 
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
+import android.arch.persistence.room.TypeConverter;
+
+import java.util.Date;
 
 
 /**
@@ -19,38 +23,75 @@ public class Task {
     private String text;
     private int type;
 
+    private Date expiration;
+
+    private Date creation; // is this needed?
+
+    // Adding a whole bunch of data for a Task
+
+    private boolean repeating;
+    // Store the ID of the parent task, allowing for multiple subTasking.
+    @ForeignKey(entity = Task.class,parentColumns = "id", childColumns = "parent", onDelete = ForeignKey.CASCADE)
+    private int parent;
+
+
+    @Ignore
+    private boolean selected;
+
     public Task(){
         this.id = null;
         this.text = "";
         this.type = 0;
+        this.expiration = new Date();
+        this.creation = new Date();
+        this.repeating = false;
+        this.parent = -1;
     }
 
+    @Ignore
     public Task(Integer id,String text, int type){
+        this();
         this.id = id;
         this.text = text;
         this.type = type;
     }
-
+    @Ignore
     public Task(String text, int type){
+        this();
         this.id = null;
         this.text = text;
         this.type = type;
     }
 
     // COPY constructor
+    @Ignore
     public Task(Task t){
         this.id = t.id;
         this.text = t.text;
         this.type = t.type;
+        this.expiration = t.expiration;
+        this.creation = t.creation;
+        this.repeating = t.repeating;
+        this.parent = t.parent;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    /*
+    GETTERS
+     */
+    public boolean isRepeating() {
+        return repeating;
     }
 
-    public Integer getId() {
-        return id;
+    public int getParent() {
+        return parent;
+    }
 
+    public Date getExpiration() {
+        return expiration;
+    }
+
+    public Date getCreation() {
+        return creation;
     }
 
     public String getText() {
@@ -61,6 +102,17 @@ public class Task {
         return type;
     }
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    /*
+    SETTERS
+     */
     public void setType(int type) {
         this.type = type;
     }
@@ -68,4 +120,27 @@ public class Task {
     public void setText(String text) {
         this.text = text;
     }
+
+    public void setExpiration(Date expiration) {
+        //TODO need to add validation
+        this.expiration = expiration;
+    }
+    public void setCreation(Date creation) {
+        this.creation = creation;
+    }
+
+    public void setRepeating(boolean repeating) {
+        this.repeating = repeating;
+    }
+
+    public void setParent(int parent) {
+        this.parent = parent >= 0 ? parent : -1;
+    }
+
+    @Ignore
+    public boolean isSelected(){return selected;}
+
+    @Ignore
+    public void toggle(boolean b){this.selected = b;}
 }
+
