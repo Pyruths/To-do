@@ -1,22 +1,31 @@
 package com.example.qwerty.todo;
 
+import android.app.ActionBar;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 
-import com.example.qwerty.todo.DataBase.AsyncTasks.DeleteTasks;
 import com.example.qwerty.todo.DataBase.AsyncTasks.GetTasks;
 import com.example.qwerty.todo.DataBase.Task;
 import com.example.qwerty.todo.DataBase.TaskDataBase;
 
-import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Created by Qwerty on 25/11/2017.
+ * This is the main task list page.
+ */
 public class MainActivity extends AppCompatActivity {
-    private RecyclerView toDoList;
+    private FragmentManager mFragmentManager;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private TaskDataBase mDataBase;
@@ -29,47 +38,52 @@ public class MainActivity extends AppCompatActivity {
         //set up database to be used for the first time
         mDataBase = TaskDataBase.getDatabase(getApplicationContext());
 
-        toDoList = findViewById(R.id.toDoList);
-
-        mLayoutManager = new LinearLayoutManager(this);
-        toDoList.setLayoutManager(mLayoutManager);
-
         mTasks = null;
         try{
             mTasks = new GetTasks(mDataBase).execute().get();
         } catch (InterruptedException | ExecutionException e){
             e.printStackTrace();
         }
+        mFragmentManager = getFragmentManager();
+        if(savedInstanceState == null){
 
-        mAdapter = new TodoItemAdapter(mTasks);
-        toDoList.setAdapter(mAdapter);
+            FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
 
+            Fragment fragment = TaskListView.newInstance(-1); // -1 for get all
+            fragmentTransaction.add(R.id.fragment_container,fragment);
+            fragmentTransaction.commit();
+        }
 
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.app_bar,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.addTask:
+                Intent intent = new Intent(this,TaskView.class);
+                startActivity(intent);
+                return true;
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     public void NewTask(View v){
         Intent intent = new Intent(this,TaskView.class);
         startActivity(intent);
 
     }
 
-    //TODO CLEAN THIS UP, it shouldn't have to refresh the app to get the recyclerView to update
-    //Possibly have a better structure than iterating through task list.
     public void DeleteAll(View v){
-        // Iterate through everything that is selected
-        ArrayList<Task> h = new ArrayList<>();
-        for (Task t : mTasks){
-            if(t.isSelected()){
-                h.add(t);
-            }
-        }
-
-        // Turn it into an array that is processable by the Async Task
-        Task[] tasklist = new Task[h.size()];
-        new DeleteTasks(mDataBase).execute(h.toArray(tasklist));
-
-        //Refresh
-        //mAdapter.notifyDataSetChanged();
-        recreate();
+        TaskListView f = (TaskListView) mFragmentManager.findFragmentById(R.id.fragment_container);
+        f.deleteAll();
 
     }
 }

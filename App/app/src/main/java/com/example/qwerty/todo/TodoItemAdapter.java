@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,12 +17,14 @@ import com.example.qwerty.todo.DataBase.Task;
 
 /**
  * Created by Qwerty on 24/11/2017.
+ * To be used in conjunction with a Recycler View
+ * This allows for viewing and selection of a list of tasks.
  */
 
 public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHolder>{
     private Task[] tasks;
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder{
         CardView mCard;
         TextView mText;
         CheckBox mSelect;
@@ -33,6 +36,7 @@ public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHo
             mSelect = v.findViewById(R.id.checkBox);
             mDate = v.findViewById(R.id.Date);
         }
+
     }
 
     TodoItemAdapter(Task[] tasks){
@@ -67,6 +71,7 @@ public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHo
             public void onClick(View v){
                 Task current = tasks[fposition];
                 current.toggle(!current.isSelected());
+
                 v.setBackgroundColor(current.isSelected()? Color.CYAN: Color.WHITE);
             }
         });
@@ -76,4 +81,11 @@ public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHo
     public int getItemCount() {
         return tasks.length;
     }
+
+    public void setTasks(Task[] tasks) {
+        this.tasks = tasks;
+        notifyDataSetChanged();
+    }
+
+
 }

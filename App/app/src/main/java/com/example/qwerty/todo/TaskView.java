@@ -1,5 +1,8 @@
 package com.example.qwerty.todo;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -21,12 +24,13 @@ import com.example.qwerty.todo.DataBase.TaskDataBase;
 
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Created by Qwerty on 25/11/2017.
+ * This is a view of an individual task
+ */
 public class TaskView extends AppCompatActivity {
     public static final String TASK_STRING = "com.example.qwerty.todo.TASK";
     public static final String TASK_PARENT = "com.example.qwerty.todo.PARENT";
-    private RecyclerView toDoList;
-    private RecyclerView.Adapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
     private Task[] mTasks;
     private TaskDataBase mDatabase;
     private EditText text;
@@ -66,11 +70,6 @@ public class TaskView extends AppCompatActivity {
         text.setText(tasks[0].getText());
         parentBox.setText(String.valueOf(tasks[0].getParent()));
 
-        // fill in recycler view
-        toDoList = findViewById(R.id.taskList);
-        mLayoutManager = new LinearLayoutManager(this);
-        toDoList.setLayoutManager(mLayoutManager);
-
         mTasks = null;
         try{
             mTasks = new GetSubTasks(mDatabase).execute(taskID).get();
@@ -78,8 +77,13 @@ public class TaskView extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        mAdapter = new TodoItemAdapter(mTasks);
-        toDoList.setAdapter(mAdapter);
+        // Adding in fragment into the display with arguments
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        Fragment fragment = TaskListView.newInstance(t.getId());
+        fragmentTransaction.add(R.id.fragment_container,fragment);
+        fragmentTransaction.commit();
 
     }
 
