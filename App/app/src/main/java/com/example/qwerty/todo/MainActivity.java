@@ -26,8 +26,6 @@ import java.util.concurrent.ExecutionException;
  */
 public class MainActivity extends AppCompatActivity {
     private FragmentManager mFragmentManager;
-    private RecyclerView.Adapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
     private TaskDataBase mDataBase;
     private Task[] mTasks;
     @Override
@@ -49,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
             FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
 
-            Fragment fragment = TaskListView.newInstance(-1); // -1 for get all
+            Fragment fragment = TaskListView.newInstance(null); // -1 for get all
             fragmentTransaction.add(R.id.fragment_container,fragment);
             fragmentTransaction.commit();
         }
@@ -75,17 +73,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void NewTask(View v){
-        Intent intent = new Intent(this,TaskView.class);
-        startActivity(intent);
-
-    }
-
-    public void DeleteAll(View v){
-        TaskListView f = (TaskListView) mFragmentManager.findFragmentById(R.id.fragment_container);
-        f.deleteAll();
-
-    }
 }
 
 

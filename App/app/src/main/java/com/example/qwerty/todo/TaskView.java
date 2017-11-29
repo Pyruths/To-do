@@ -1,5 +1,6 @@
 package com.example.qwerty.todo;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -48,9 +49,12 @@ public class TaskView extends AppCompatActivity {
 
         Intent intent = getIntent();
         int taskID = intent.getIntExtra(TASK_STRING,-1);
-        int taskParent = intent.getIntExtra(TASK_PARENT,-1);
+        Integer taskParent = intent.getIntExtra(TASK_PARENT,-1);
         t = new Task();
-        t.setParent(taskParent); // Set Parent ID
+
+        t.setParent(taskParent); // Set Parent ID -1 will set to null
+
+        parentBox.setText(String.valueOf(taskParent));
         if (taskID == -1){
             return; // Task does not exist.
         }
@@ -68,7 +72,6 @@ public class TaskView extends AppCompatActivity {
         t = tasks[0];
         t.setText(tasks[0].getText()); // This line might not be needed
         text.setText(tasks[0].getText());
-        parentBox.setText(String.valueOf(tasks[0].getParent()));
 
         mTasks = null;
         try{
@@ -76,14 +79,15 @@ public class TaskView extends AppCompatActivity {
         } catch (InterruptedException | ExecutionException e){
             e.printStackTrace();
         }
+        if(savedInstanceState == null) {
+            // Adding in fragment into the display with arguments
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        // Adding in fragment into the display with arguments
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-        Fragment fragment = TaskListView.newInstance(t.getId());
-        fragmentTransaction.add(R.id.fragment_container,fragment);
-        fragmentTransaction.commit();
+            Fragment fragment = TaskListView.newInstance(t.getId());
+            fragmentTransaction.add(R.id.fragment_container,fragment);
+            fragmentTransaction.commit();
+        }
 
     }
 
@@ -91,11 +95,8 @@ public class TaskView extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
             case android.R.id.home:
-                if (t.getParent() != -1){
-                    //go back up parent tree. TODO make it so it goes back to where you accessed from
-                    onBackPressed();
-                    return true;
-                }
+
+                onNavigateUp();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -127,4 +128,16 @@ public class TaskView extends AppCompatActivity {
         intent.putExtra(TaskView.TASK_PARENT,t.getId());
         startActivity(intent);
     }
+
+    @Override
+    public boolean onNavigateUp() {
+        //TODO there is an error here on entering a 'new' task.
+
+        if (t.getParent() != null){
+            finish();
+            return true;
+        }
+        return super.onNavigateUp();
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.example.qwerty.todo.DataBase;
 
+import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
@@ -8,13 +9,21 @@ import android.arch.persistence.room.TypeConverter;
 
 import java.util.Date;
 
+import static android.arch.persistence.room.ForeignKey.CASCADE;
+
 
 /**
  * Created by Qwerty on 25/11/2017.
  * This is the representation of a Task inside of the database.
  */
+/*
 
-@Entity
+*/
+@Entity(foreignKeys =
+        @ForeignKey(entity = Task.class,
+        parentColumns = "id",
+        childColumns = "parent",
+        onDelete = CASCADE))
 public class Task {
 
     @PrimaryKey(autoGenerate = true)
@@ -31,8 +40,9 @@ public class Task {
 
     private boolean repeating;
     // Store the ID of the parent task, allowing for multiple subTasking.
-    @ForeignKey(entity = Task.class,parentColumns = "id", childColumns = "parent", onDelete = ForeignKey.CASCADE)
-    private int parent;
+
+    @ColumnInfo(name = "parent")
+    private Integer parent;
 
 
     @Ignore
@@ -45,7 +55,7 @@ public class Task {
         this.expiration = new Date();
         this.creation = new Date();
         this.repeating = false;
-        this.parent = -1;
+        this.parent = null;
     }
 
     @Ignore
@@ -82,7 +92,7 @@ public class Task {
         return repeating;
     }
 
-    public int getParent() {
+    public Integer getParent() {
         return parent;
     }
 
@@ -133,8 +143,9 @@ public class Task {
         this.repeating = repeating;
     }
 
-    public void setParent(int parent) {
-        this.parent = parent >= 0 ? parent : -1;
+    public void setParent(Integer parent) {
+
+        this.parent = parent == null || parent >= 0 ? parent : null;
     }
 
     @Ignore
@@ -142,5 +153,7 @@ public class Task {
 
     @Ignore
     public void toggle(boolean b){this.selected = b;}
+
+
 }
 

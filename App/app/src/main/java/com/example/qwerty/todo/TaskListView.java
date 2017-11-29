@@ -31,7 +31,7 @@ public class TaskListView extends Fragment {
     private RecyclerView.LayoutManager mLayoutManager;
     private Task[] mTasks;
     private static final String PARENT = "parent";
-    private int parentID;
+    private Integer parentID;
 
 
 
@@ -47,11 +47,13 @@ public class TaskListView extends Fragment {
      * @return A new instance of fragment TaskListView.
      */
     // TODO: Rename and change types and number of parameters
-    public static TaskListView newInstance(int parentID) {
+    public static TaskListView newInstance(Integer parentID) {
         TaskListView fragment = new TaskListView();
         // Set Arguments
         Bundle args = new Bundle();
-        args.putInt(PARENT,parentID);
+        if (parentID != null){
+            args.putInt(PARENT,parentID);
+        }
         fragment.setArguments(args);
         return fragment;
     }
@@ -60,7 +62,7 @@ public class TaskListView extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        parentID = getArguments().getInt(PARENT,-1);
+        parentID = getArguments().getInt(PARENT, -1);
     }
 
     @Override
@@ -87,10 +89,8 @@ public class TaskListView extends Fragment {
         outState.putInt(PARENT,parentID);
     }
 
-    public void deleteAll(){
-
+    public void update(){
+        mAdapter.update();
     }
-
-
 
 }

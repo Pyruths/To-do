@@ -38,7 +38,7 @@ public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHo
     private ActionMode mActionMode;
     private Context appContext;
     private ArrayList<Task> mSelectedTasks;
-    private int parentID;
+    private Integer parentID;
 
 
     class ViewHolder extends RecyclerView.ViewHolder{
@@ -56,7 +56,7 @@ public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHo
 
     }
 
-    TodoItemAdapter(Context appContext, int parentID){
+    TodoItemAdapter(Context appContext, Integer parentID){
         mSelectedTasks = new ArrayList<>();
         this.parentID = parentID;
         this.appContext = appContext;
@@ -141,7 +141,7 @@ public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHo
     private void inflateTasks(){
         TaskDataBase db = TaskDataBase.getDatabase(appContext);
         mTasks = null;
-        if (parentID < 0){//get all
+        if (parentID == null || parentID < 0){//get all
             try{
                 mTasks = new GetTasks(db).execute().get();
             } catch (InterruptedException | ExecutionException e){
@@ -159,6 +159,9 @@ public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHo
         notifyDataSetChanged();
     }
 
+    public void update(){
+        inflateTasks();
+    }
 
     private ActionMode.Callback mActionCallback = new ActionMode.Callback() {
         @Override
@@ -177,8 +180,8 @@ public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHo
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
             switch (menuItem.getItemId()){
                 case R.id.delete:
-                    deleteAll(); // delete
-                    inflateTasks(); // refresh
+                    deleteAll();
+                    update();
                     actionMode.finish(); // finish
                     return true;
                 default:
@@ -192,4 +195,6 @@ public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHo
             mActionMode = null;
         }
     };
+
+
 }
