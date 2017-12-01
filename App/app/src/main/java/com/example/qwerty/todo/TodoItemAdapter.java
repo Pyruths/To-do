@@ -51,7 +51,7 @@ public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHo
             mText = v.findViewById(R.id.text);
             mCard = v.findViewById(R.id.card);
             mSelect = v.findViewById(R.id.checkBox);
-            mDate = v.findViewById(R.id.Date);
+            mDate = v.findViewById(R.id.date);
         }
 
     }

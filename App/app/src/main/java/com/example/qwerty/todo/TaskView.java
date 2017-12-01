@@ -1,6 +1,6 @@
 package com.example.qwerty.todo;
 
-import android.app.Activity;
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -8,8 +8,6 @@ import android.content.Intent;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
@@ -18,11 +16,15 @@ import android.widget.TextView;
 import com.example.qwerty.todo.DataBase.AsyncTasks.DeleteTasks;
 import com.example.qwerty.todo.DataBase.AsyncTasks.GetSubTasks;
 import com.example.qwerty.todo.DataBase.AsyncTasks.GetTask;
-import com.example.qwerty.todo.DataBase.AsyncTasks.GetTasks;
 import com.example.qwerty.todo.DataBase.AsyncTasks.SaveTask;
 import com.example.qwerty.todo.DataBase.Task;
 import com.example.qwerty.todo.DataBase.TaskDataBase;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -35,6 +37,8 @@ public class TaskView extends AppCompatActivity {
     private Task[] mTasks;
     private TaskDataBase mDatabase;
     private EditText text;
+    private TextView dateText;
+    private TextView timeText;
     private TextView parentBox;
     private Task t;
 
@@ -43,43 +47,96 @@ public class TaskView extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_task);
 
+        //SET VIEWS
         mDatabase = TaskDataBase.getDatabase(getApplicationContext());
         text = findViewById(R.id.editText);
         parentBox = findViewById(R.id.parent);
+        dateText = findViewById(R.id.date);
+        timeText = findViewById(R.id.time);
 
+
+
+
+        // GET ARGUMENTS
         Intent intent = getIntent();
         int taskID = intent.getIntExtra(TASK_STRING,-1);
         Integer taskParent = intent.getIntExtra(TASK_PARENT,-1);
-        t = new Task();
 
+        //INITALISE CONTENT
+        t = new Task();
         t.setParent(taskParent); // Set Parent ID -1 will set to null
 
-        parentBox.setText(String.valueOf(taskParent));
-        if (taskID == -1){
-            return; // Task does not exist.
-        }
-        //look through database
         Task[] tasks = null;
-        try{
-            tasks = new GetTask(mDatabase).execute(taskID).get();
-        } catch (InterruptedException | ExecutionException e){
-            e.printStackTrace();
+        //CONDITIONALS
+        if (taskID != -1){
+            try{
+                tasks = new GetTask(mDatabase).execute(taskID).get();
+            } catch (InterruptedException | ExecutionException e){
+                e.printStackTrace();
+            }
+
         }
 
-        if (tasks == null || tasks.length == 0) {
-            return; // Task does not exist
+        // get parents task
+        if(tasks != null){
+            t = tasks[0];
+            // get subtasks
+            mTasks = null;
+            try{
+                mTasks = new GetSubTasks(mDatabase).execute(taskID).get();
+            } catch (InterruptedException | ExecutionException e){
+                e.printStackTrace();
+            }
         }
-        t = tasks[0];
-        t.setText(tasks[0].getText()); // This line might not be needed
-        text.setText(tasks[0].getText());
 
-        mTasks = null;
-        try{
-            mTasks = new GetSubTasks(mDatabase).execute(taskID).get();
-        } catch (InterruptedException | ExecutionException e){
-            e.printStackTrace();
-        }
-        if(savedInstanceState == null) {
+
+        //SET UI ELEMENTS
+
+        parentBox.setText(String.valueOf(taskParent));
+        text.setText(t.getText());
+
+        //TODO turn these patterns into a String resource or something to reference later.
+        dateText.setText(new SimpleDateFormat("yyyy MMM d", Locale.US).format(t.getExpiration()));
+        timeText.setText(new SimpleDateFormat("hh:mm a", Locale.US).format(t.getExpiration()));
+
+        final Date d = t.getExpiration();
+
+        dateText.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                DialogFragment f = new DatePickerFragment();
+                if (d != null){
+                    Bundle b = new Bundle();
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(d);
+                    b.putInt(DatePickerFragment.YEAR_TAG,c.get(Calendar.YEAR));
+                    b.putInt(DatePickerFragment.MONTH_TAG,c.get(Calendar.MONTH));
+                    b.putInt(DatePickerFragment.DAY_TAG,c.get(Calendar.DAY_OF_MONTH));
+                    f.setArguments(b);
+                }
+                f.show(getFragmentManager(),"timePicker");
+
+            }
+        });
+
+        timeText.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                DialogFragment f = new TimePickerFragment();
+                if (d != null){
+                    Bundle b = new Bundle();
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(d);
+                    b.putInt(TimePickerFragment.HOUR_TAG,c.get(Calendar.HOUR));
+                    b.putInt(TimePickerFragment.MINUTE_TAG,c.get(Calendar.MINUTE));
+                    f.setArguments(b);
+                }
+                f.show(getFragmentManager(),"timePicker");
+
+            }
+        });
+
+        if(savedInstanceState == null && t.getId() != null) {
             // Adding in fragment into the display with arguments
             FragmentManager fragmentManager = getFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -119,11 +176,13 @@ public class TaskView extends AppCompatActivity {
     }
 
     public void AddSubTask(View v){
+
         if (t.getId() == null){
             Snackbar.make(v,"Submit your task first",Snackbar.LENGTH_SHORT).show();
-            return; // TODO make this show a snackbar message
+            return;
         }
 
+        //PROBLEM, showing all tasks.
         Intent intent = new Intent(this,TaskView.class);
         intent.putExtra(TaskView.TASK_PARENT,t.getId());
         startActivity(intent);
@@ -139,5 +198,6 @@ public class TaskView extends AppCompatActivity {
         }
         return super.onNavigateUp();
     }
+
 
 }
