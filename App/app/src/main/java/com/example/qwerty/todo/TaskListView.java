@@ -66,6 +66,12 @@ public class TaskListView extends Fragment {
     }
 
     @Override
+    public void onResume(){
+        super.onResume();
+        mAdapter.update();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
@@ -87,10 +93,6 @@ public class TaskListView extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(PARENT,parentID);
-    }
-
-    public void update(){
-        mAdapter.update();
     }
 
 }

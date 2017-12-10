@@ -116,6 +116,8 @@ public class TodoItemAdapter extends RecyclerView.Adapter<TodoItemAdapter.ViewHo
     }
 
 
+
+
     @Override
     public int getItemCount() {
         return mTasks.length;

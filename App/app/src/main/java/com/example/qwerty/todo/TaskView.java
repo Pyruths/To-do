@@ -19,8 +19,10 @@ import com.example.qwerty.todo.DataBase.AsyncTasks.GetTask;
 import com.example.qwerty.todo.DataBase.AsyncTasks.SaveTask;
 import com.example.qwerty.todo.DataBase.Task;
 import com.example.qwerty.todo.DataBase.TaskDataBase;
+import com.example.qwerty.todo.Dialogs.DatePickerFragment;
+import com.example.qwerty.todo.Dialogs.RepeatPicker;
+import com.example.qwerty.todo.Dialogs.TimePickerFragment;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -31,7 +33,8 @@ import java.util.concurrent.ExecutionException;
  * Created by Qwerty on 25/11/2017.
  * This is a view of an individual task
  */
-public class TaskView extends AppCompatActivity {
+public class TaskView extends AppCompatActivity implements DatePickerFragment.DatePickerUser, TimePickerFragment.TimePickerUser{
+
     public static final String TASK_STRING = "com.example.qwerty.todo.TASK";
     public static final String TASK_PARENT = "com.example.qwerty.todo.PARENT";
     private Task[] mTasks;
@@ -40,6 +43,7 @@ public class TaskView extends AppCompatActivity {
     private TextView dateText;
     private TextView timeText;
     private TextView parentBox;
+    private TextView repeatText;
     private Task t;
 
     @Override
@@ -53,16 +57,14 @@ public class TaskView extends AppCompatActivity {
         parentBox = findViewById(R.id.parent);
         dateText = findViewById(R.id.date);
         timeText = findViewById(R.id.time);
-
-
-
+        repeatText = findViewById(R.id.repeat);
 
         // GET ARGUMENTS
         Intent intent = getIntent();
         int taskID = intent.getIntExtra(TASK_STRING,-1);
         Integer taskParent = intent.getIntExtra(TASK_PARENT,-1);
 
-        //INITALISE CONTENT
+        //INITIALISE CONTENT
         t = new Task();
         t.setParent(taskParent); // Set Parent ID -1 will set to null
 
@@ -89,15 +91,14 @@ public class TaskView extends AppCompatActivity {
             }
         }
 
-
         //SET UI ELEMENTS
-
         parentBox.setText(String.valueOf(taskParent));
         text.setText(t.getText());
 
         //TODO turn these patterns into a String resource or something to reference later.
         dateText.setText(new SimpleDateFormat("yyyy MMM d", Locale.US).format(t.getExpiration()));
         timeText.setText(new SimpleDateFormat("hh:mm a", Locale.US).format(t.getExpiration()));
+
 
         final Date d = t.getExpiration();
 
@@ -136,6 +137,15 @@ public class TaskView extends AppCompatActivity {
             }
         });
 
+        repeatText.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                DialogFragment f = new RepeatPicker();
+                f.show(getFragmentManager(),"repeatPicker");
+            }
+        });
+
+        //SET UP FRAGMENTS
         if(savedInstanceState == null && t.getId() != null) {
             // Adding in fragment into the display with arguments
             FragmentManager fragmentManager = getFragmentManager();
@@ -148,12 +158,13 @@ public class TaskView extends AppCompatActivity {
 
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
             case android.R.id.home:
-
                 onNavigateUp();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -190,8 +201,6 @@ public class TaskView extends AppCompatActivity {
 
     @Override
     public boolean onNavigateUp() {
-        //TODO there is an error here on entering a 'new' task.
-
         if (t.getParent() != null){
             finish();
             return true;
@@ -200,4 +209,24 @@ public class TaskView extends AppCompatActivity {
     }
 
 
+    // From DatePickerFragment
+    @Override
+    public void onDateSetByPicker(Calendar c) {
+        Calendar taskDate = Calendar.getInstance();
+        taskDate.setTime(t.getExpiration());
+        c.set(Calendar.HOUR,taskDate.get(Calendar.HOUR));
+        c.set(Calendar.MINUTE,taskDate.get(Calendar.MINUTE));
+        t.setExpiration(c.getTime());
+    }
+
+    //From TimePickerFragment
+    @Override
+    public void onTimeSetByPicker(Calendar c) {
+        Calendar taskDate = Calendar.getInstance();
+        taskDate.setTime(t.getExpiration());
+        c.set(Calendar.YEAR,taskDate.get(Calendar.YEAR));
+        c.set(Calendar.DAY_OF_MONTH,taskDate.get(Calendar.DAY_OF_MONTH));
+        c.set(Calendar.MONTH,taskDate.get(Calendar.MONTH));
+        t.setExpiration(c.getTime());
+    }
 }

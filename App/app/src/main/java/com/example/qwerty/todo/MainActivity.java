@@ -4,7 +4,13 @@ import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
@@ -13,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 
 import com.example.qwerty.todo.DataBase.AsyncTasks.GetTasks;
 import com.example.qwerty.todo.DataBase.Task;
@@ -25,13 +32,31 @@ import java.util.concurrent.ExecutionException;
  * This is the main task list page.
  */
 public class MainActivity extends AppCompatActivity {
-    private FragmentManager mFragmentManager;
     private TaskDataBase mDataBase;
     private Task[] mTasks;
+    private Button notif;
+    private NotificationManager mNotifier;
+    private NotificationCompat.Builder notifBuilder;
+    private static final String uniqueID = "989";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //SETTING UP NOTIFICATION CHANNEL
+        mNotifier = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationChannel mChannel = new NotificationChannel(uniqueID,"MyApp",NotificationManager.IMPORTANCE_DEFAULT);
+        mChannel.enableLights(true);
+        mChannel.setLightColor(Color.RED);
+        mNotifier.createNotificationChannel(mChannel);
+
+        //Making notification builder
+        notifBuilder = new NotificationCompat.Builder(this,uniqueID);
+
+
+        notif = findViewById(R.id.notification_button);
+
+
 
         //set up database to be used for the first time
         mDataBase = TaskDataBase.getDatabase(getApplicationContext());
@@ -42,12 +67,10 @@ public class MainActivity extends AppCompatActivity {
         } catch (InterruptedException | ExecutionException e){
             e.printStackTrace();
         }
-        mFragmentManager = getFragmentManager();
+
         if(savedInstanceState == null){
-
-            FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-
-            Fragment fragment = TaskListView.newInstance(null); // -1 for get all
+            FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+            Fragment fragment = TaskListView.newInstance(null); // null for all
             fragmentTransaction.add(R.id.fragment_container,fragment);
             fragmentTransaction.commit();
         }
@@ -71,6 +94,15 @@ public class MainActivity extends AppCompatActivity {
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void notif(View v){
+        notifBuilder.setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle("New notification")
+                .setContentText("This is a update");
+
+        Notification notification = notifBuilder.build();
+        mNotifier.notify(1,notification);
     }
 
 }

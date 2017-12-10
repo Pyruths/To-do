@@ -1,13 +1,14 @@
-package com.example.qwerty.todo;
+package com.example.qwerty.todo.Dialogs;
 
-import android.app.DatePickerDialog;
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
-import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.TimePicker;
+
+import com.example.qwerty.todo.R;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -34,7 +35,6 @@ public class TimePickerFragment extends DialogFragment implements TimePickerDial
             minute = arguments.getInt(MINUTE_TAG,minute);
         }
 
-
         return new TimePickerDialog(getActivity(), android.R.style.Theme_Holo_Light_Dialog,this,hour,minute,false);
     }
 
@@ -45,5 +45,19 @@ public class TimePickerFragment extends DialogFragment implements TimePickerDial
         c.set(Calendar.HOUR,hour);
         c.set(Calendar.MINUTE,minute);
         t.setText(new SimpleDateFormat("hh:mm a", Locale.US).format(c.getTime()));
+
+        Activity activity = getActivity();
+        if (activity instanceof TimePickerUser){
+            ((TimePickerUser) activity).onTimeSetByPicker(c);
+        }
+    }
+
+    public interface TimePickerUser {
+        /**
+         * This is the response to the termination / submission of the widget, given back to the activity/fragment
+         * that called it
+         * @param c This is the date that is passed to the datePicker.
+         */
+        public void onTimeSetByPicker(Calendar c);
     }
 }
